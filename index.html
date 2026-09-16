@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixelBench — Evaluating Language Models for Pixel-Art Creation</title>
+<meta name="description" content="PixelBench: a benchmark for pixel-art creation with language models — text-to-image generation, instruction-guided editing, restoration and animation — with an agentic creation baseline, human evaluation and an LLM-as-judge protocol.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><rect width='8' height='8' fill='%2314141b'/><rect x='1' y='1' width='2' height='2' fill='%2355b9ee'/><rect x='4' y='2' width='2' height='2' fill='%23ffdf96'/><rect x='2' y='5' width='2' height='2' fill='%23ef5860'/></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav class="topnav" id="topnav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      PixelBench
+    </a>
+    <div class="nav-links">
+      <a href="#abstract"><span class="lang-en">Abstract</span><span class="lang-zh">摘要</span></a>
+      <a href="#case"><span class="lang-en">Case study</span><span class="lang-zh">创作过程</span></a>
+      <a href="#results"><span class="lang-en">Results</span><span class="lang-zh">评测结果</span></a>
+      <a href="#gallery"><span class="lang-en">All 975 artworks</span><span class="lang-zh">全部 975 张作品</span></a>
+      <a href="#resources"><span class="lang-en">Resources</span><span class="lang-zh">资源</span></a>
+      <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language">中文</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="lang-en">Benchmark &middot; ICLR 2027 submission</span><span class="lang-zh">基准 &middot; ICLR 2027 投稿</span></p>
+      <h1>PixelBench</h1>
+      <p class="subtitle lang-en">Evaluating Language Models for Pixel-Art Creation</p>
+      <p class="subtitle lang-zh">面向像素画创作的语言模型评测基准</p>
+      <p class="authors">PixelBench Team <span class="authors-note lang-en">· authors and affiliations to be added</span><span class="authors-note lang-zh">· 作者与单位待补充</span></p>
+      <div class="cta-row">
+        <a class="btn btn-primary is-soon" href="#resources" title="Coming soon">
+          <span class="lang-en">Paper (soon)</span><span class="lang-zh">论文（待发布）</span></a>
+        <a class="btn is-soon" href="#resources" title="Coming soon">
+          <span class="lang-en">Code (soon)</span><span class="lang-zh">代码（待发布）</span></a>
+        <a class="btn btn-ghost" href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">
+          <span class="lang-en">Pixel-art skill ↗</span><span class="lang-zh">像素画 Skill ↗</span></a>
+      </div>
+      <dl class="hero-stats">
+        <div><dt>75</dt><dd><span class="lang-en">text-to-image tasks</span><span class="lang-zh">文生图题目</span></dd></div>
+        <div><dt>13</dt><dd><span class="lang-en">language models</span><span class="lang-zh">语言模型</span></dd></div>
+        <div><dt>975</dt><dd><span class="lang-en">generated artworks</span><span class="lang-zh">生成作品</span></dd></div>
+        <div><dt>4</dt><dd><span class="lang-en">human raters</span><span class="lang-zh">人类评审</span></dd></div>
+      </dl>
+    </div>
+    <figure class="hero-art">
+      <img src="case/final@4x.png" alt="Summer seaside pixel art, 128x128, drawn by GPT-6 Astra with the astra-pixel-art skill" width="512" height="512">
+      <figcaption>
+        <span class="lang-en">Drawn by <strong>GPT-6 Astra</strong> through code, layer by layer — <a href="#case">see the process</a>.</span>
+        <span class="lang-zh">由 <strong>GPT-6 Astra</strong> 用代码逐层绘制 — <a href="#case">查看绘制过程</a>。</span>
+      </figcaption>
+    </figure>
+  </div>
+</header>
+
+<main>
+
+<!-- ───────────────────────── abstract ───────────────────────── -->
+<section class="section" id="abstract">
+  <div class="wrap narrow">
+    <h2><span class="lang-en">Abstract</span><span class="lang-zh">摘要</span></h2>
+    <div class="prose lang-en">
+      <p>Pixel art is widely used in games and digital content creation, requiring readable forms, coherent
+      spatial relationships, and harmonious colors under limited resolution and palette constraints.
+      Language models show growing promise in visual creation, yet their pixel art creation capabilities
+      lack systematic evaluation. We introduce <strong>PixelBench</strong>, formalizing text-to-image
+      generation and instruction-guided editing for pixel art and providing a benchmark for these tasks.
+      We further present a baseline approach in which language model agents invoke drawing tools through
+      code to generate and edit pixel art. We assess the quality of generated artwork through human
+      evaluation and employ a multimodal large language model as a judge, validating the agreement between
+      its automated assessments and human preferences. We compare language models and configurations across
+      diverse subjects and canvas sizes. In our experiments, <strong>GPT-6 Astra</strong> achieves both the
+      highest average judge score and the best average human rank, highlighting the potential of
+      general-purpose language models for pixel art creation. PixelBench brings together task definitions,
+      a creation method, and evaluation protocols in a unified framework for studying pixel art generation
+      and editing with language models.</p>
+    </div>
+    <div class="prose lang-zh"><p>像素画广泛用于游戏和数字内容创作，其制作要求在有限分辨率和调色板下组织清晰的形态、连贯的空间关系与协调的色彩。语言模型在视觉创作中展现出新的潜力，但其像素画创作能力仍缺乏系统评估。我们提出 <strong>PixelBench</strong>，规范化文本生成像素画与指令驱动编辑两类任务，并构建相应的评测基准。我们进一步提供一种基于语言模型 Agent 的像素画创作基础方法，通过代码调用绘图工具完成像素画的生成与编辑。在评价方面，我们通过人类评价衡量生成作品的质量，并采用多模态大语言模型作为评审，并验证了其自动评价结果与人类偏好的一致性。我们在多种题材与画幅上比较了不同语言模型及其配置，实验中 <strong>GPT-6 Astra</strong> 获得最高 Judge 评分和最高人类平均名次，显示出通用语言模型用于像素画创作的潜力。 PixelBench 将任务定义、创作方法与评价协议结合起来，为系统研究语言模型的像素画生成与编辑能力提供了统一框架。</p></div>
+
+    <div class="cards-3">
+      <article class="info-card">
+        <h3><span class="c-num">1</span><span class="lang-en">Task suite</span><span class="lang-zh">任务套件</span></h3>
+        <p class="lang-en">75 text-to-image tasks across 7 categories — items, characters, scenes, creatures,
+        materials, effects, UI — at canvas sizes from 16×16 to 256×256, plus a 25-task instruction-guided
+        editing suite <span class="tiny-badge">coming soon</span>.</p>
+        <p class="lang-zh">75 道文生图题目，覆盖 7 个类别 —— 物品、人物、场景、生物、材质、特效、UI —— 画幅从 16×16 到 256×256，另有 25 道指令驱动编辑题目。</p>
+        <div class="chip-row" id="catChips"></div>
+      </article>
+      <article class="info-card">
+        <h3><span class="c-num">2</span><span class="lang-en">Agentic creation baseline</span><span class="lang-zh">Agent 创作基线</span></h3>
+        <p class="lang-en">The model draws inside a persistent canvas REPL: it registers a palette, calls
+        drawing primitives, inspects the render, and iterates. Every call is traced, so process quality —
+        not just the final image — is measurable.</p>
+        <p class="lang-zh">模型在持久画布 REPL 中作画：注册调色板、调用绘图原语、观察渲染结果、迭代修改。所有调用都被完整记录，因此「过程质量」而不仅是最终图像都可被度量。</p>
+        <p class="mini-links"><a href="#case"><span class="lang-en">See a full trace →</span><span class="lang-zh">查看完整轨迹 →</span></a></p>
+      </article>
+      <article class="info-card">
+        <h3><span class="c-num">3</span><span class="lang-en">Evaluation protocol</span><span class="lang-zh">评价协议</span></h3>
+        <p class="lang-en">A multimodal LLM judge scores every image 0–100 on padded, nearest-neighbour
+        upscaled inputs; four human raters independently rank all 13 models per task. The two orderings
+        agree closely.</p>
+        <p class="lang-zh">多模态 LLM 评审在补边 + 最近邻放大后的输入上为每张图打 0–100 分；4 位人类评审对每题 13 个模型独立排序。两种排序高度一致。</p>
+        <p class="mini-links"><a href="#results"><span class="lang-en">See the agreement →</span><span class="lang-zh">查看一致性 →</span></a></p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── case study ───────────────────────── -->
+<section class="section section-alt" id="case">
+  <div class="wrap">
+    <h2><span class="lang-en">Case study — one drawing, one line of code at a time</span><span class="lang-zh">案例 — 一行代码一个动作的完整绘制过程</span></h2>
+    <p class="lede lang-en">A language model does not paint here: it <em>writes code</em>. Below is the
+    verbatim session in which GPT-6 Astra drew task&nbsp;#45 <em>Summer Seaside</em> (128×128) with the
+    <a href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">astra-pixel-art</a>
+    skill.</p>
+    <p class="lede lang-zh">模型在这里不是「画」出来的，而是<strong>写代码</strong>画出来的。以下片段是 GPT-6 Astra 使用 <a href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">astra-pixel-art</a> Skill 完成第 45 题《夏日的海边》（128×128）的完整会话。</p>
+
+    <div class="case-meta" id="caseMeta"></div>
+
+    <figure class="prompt-figure">
+      <figcaption><span class="lang-en">Task prompt (verbatim)</span><span class="lang-zh">题目提示词（原文）</span></figcaption>
+      <pre class="prompt-box" id="casePrompt"></pre>
+    </figure>
+
+    <p class="fig-label"><strong><span class="lang-en">Figure 1</span><span class="lang-zh">图 1</span></strong> —
+      <span class="lang-en">interactive case study: <b id="fig1Frames">293</b> captured canvas states over
+        <b id="fig1Lines">137</b> lines of code</span>
+      <span class="lang-zh">交互式案例：<b id="fig1LinesZh">137</b> 行代码对应 <b id="fig1FramesZh">293</b> 个画布快照</span></p>
+    <p class="hint">
+      <span class="lang-en">The line highlighted in the code panel is what the engine is executing right now — it is
+      echoed in the bar above the listing, the code scrolls to follow it, and clicking any line jumps the animation to
+      that statement. Amber timeline markers are layer creations, red markers are <code>flatten</code> merges; drag the
+      timeline or use ← / → to step, space to play or pause. Repetitive texture loops are fast-forwarded (toggle
+      <b>⏩ loops</b> to watch them in real time).</span>
+      <span class="lang-zh">代码面板中高亮的行就是引擎<strong>此刻正在执行</strong>的语句 —— 列表上方的横条会同步显示该行内容，代码会自动滚动跟随，点击任意一行可把动画跳到该语句。时间轴黄点=新建图层，红点=<code>flatten</code> 合并；可拖动时间轴或用 ← / → 单帧步进、空格播放/暂停。重复的纹理循环默认快进（点 <b>⏩ 循环加速</b> 可关掉、按原速观看）。</span>
+    </p>
+
+    <div class="player" id="player">
+      <div class="player-bar">
+        <div class="pb-group">
+          <button class="btn btn-play" id="btnPlay" type="button" aria-label="Play">
+            <span class="glyph" id="playGlyph">▶</span>
+            <span class="lang-en" id="playLabel">Play</span><span class="lang-zh" id="playLabelZh">播放</span>
+          </button>
+          <button class="btn btn-sm" id="btnRestart" type="button" aria-label="Restart">⟲</button>
+        </div>
+        <div class="pb-group speeds" role="group" aria-label="Speed">
+          <button class="chip" data-speed="0.5" type="button">0.5×</button>
+          <button class="chip is-on" data-speed="1" type="button">1×</button>
+          <button class="chip" data-speed="2" type="button">2×</button>
+          <button class="chip" data-speed="4" type="button">4×</button>
+        </div>
+        <div class="pb-group">
+          <button class="chip is-on" id="loopFast" type="button"
+                  title="Play repetitive loop frames faster / 循环内的重复帧加速播放">⏩
+            <span class="lang-en">loops</span><span class="lang-zh">循环加速</span></button>
+        </div>
+        <div class="pb-group scrub">
+          <input type="range" id="scrub" min="0" max="292" value="0" step="1" aria-label="Timeline">
+        </div>
+        <div class="pb-group readout">
+          <span class="ro-line">L<span id="roLine">1</span></span>
+          <span class="ro-sep">·</span>
+          <span class="ro-frame"><span id="roFrame">0</span>/<span id="roTotal">293</span></span>
+          <span class="ro-sep">·</span>
+          <span class="ro-ops"><span id="roOps">0</span> <span class="lang-en">draw calls</span><span class="lang-zh">次绘图调用</span></span>
+        </div>
+      </div>
+
+      <div class="timeline" id="timeline" title="Layer creation and merge events">
+        <div class="tl-track"></div>
+      </div>
+
+      <div class="player-grid">
+        <div class="panel panel-code">
+          <div class="panel-head">
+            <span class="panel-title"><span class="lang-en">Session code</span><span class="lang-zh">会话代码</span></span>
+            <span class="panel-sub" id="codeStepLabel">Step 1</span>
+          </div>
+          <div class="now-bar">
+            <span class="now-line" id="nowLine">L1</span>
+            <code class="now-code" id="nowCode">—</code>
+            <span class="now-layer" id="nowLayer"></span>
+          </div>
+          <ol class="code" id="codeList"></ol>
+        </div>
+
+        <div class="stage-col">
+          <div class="panel panel-stage">
+            <div class="panel-head">
+              <span class="panel-title"><span class="lang-en">Canvas</span><span class="lang-zh">画布</span></span>
+              <span class="panel-sub"><span id="stageLayerLabel">—</span>
+                <span id="stageLoad" class="stage-load"></span></span>
+            </div>
+            <div class="stage-wrap">
+              <canvas id="stageCanvas" width="128" height="128" role="img"
+                      aria-label="the canvas the agent is drawing on"></canvas>
+              <div class="merge-overlay" id="mergeOverlay" aria-hidden="true">
+                <div class="mo-inner"></div>
+                <div class="mo-caption">
+                  <code id="moCode">flatten([...])</code>
+                  <span class="lang-en" id="moLabelEn">merging layers</span>
+                  <span class="lang-zh" id="moLabelZh">合并图层</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel panel-layers">
+            <div class="panel-head">
+              <span class="panel-title"><span class="lang-en">Layers</span><span class="lang-zh">图层</span></span>
+              <span class="panel-sub"><span id="layerCount">0</span>/6</span>
+            </div>
+            <div class="layer-strip" id="layerStrip"></div>
+          </div>
+
+          <div class="panel panel-out" id="outPanel">
+            <div class="panel-head">
+              <span class="panel-title"><span class="lang-en">REPL observation</span><span class="lang-zh">REPL 观察输出</span></span>
+            </div>
+            <pre class="out-box" id="outBox"><span class="out-idle">—</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ───────────────────────── editing (coming soon) ───────────────────────── -->
+<section class="section" id="editing">
+  <div class="wrap">
+    <p class="kicker"><strong><span class="lang-en">Task suite 2</span><span class="lang-zh">任务套件 2</span></strong> —
+      <span class="lang-en">instruction-guided editing, in preparation</span>
+      <span class="lang-zh">指令驱动的编辑，筹备中</span></p>
+    <h2><span class="lang-en">Editing an existing pixel-art asset</span><span class="lang-zh">修改已有的像素画资产</span></h2>
+    <p class="lede lang-en">The second half of PixelBench asks a different question: given a finished pixel-art asset and a
+    written instruction, can a model make exactly the requested change and leave everything else alone? The model sees
+    the asset and the instruction but never the reference result, and its whole session is traced like the creation
+    tasks. <strong>25 tasks</strong> are being prepared; results will appear here.</p>
+    <p class="lede lang-zh">PixelBench 的另一半问的是另一个问题：给一张已完成的像素画资产和一句文字指令，模型能否只做出被要求的那处修改、而不动其它部分？模型能看到资产与指令，但看不到参考结果，整个过程同样被完整记录。<strong>25 道题</strong>正在准备中，结果将在此处更新。</p>
+
+    <div class="soon-panel">
+      <div class="soon-head">
+        <span class="soon-badge"><span class="lang-en">coming soon</span><span class="lang-zh">即将发布</span></span>
+        <span class="soon-count"><b>25</b> <span class="lang-en">editing tasks</span><span class="lang-zh">道编辑题</span></span>
+      </div>
+      <div class="soon-cards">
+        <div class="soon-card">
+          <h3><span class="lang-en">What a task looks like</span><span class="lang-zh">题目形态</span></h3>
+          <p class="lang-en">An input asset, an editing instruction, and the output constraints it must still satisfy
+          (canvas size, colour budget, transparency). Some tasks ask for a short frame sequence rather than a single
+          image, so a change in viewing angle or pose can be judged over time.</p>
+          <p class="lang-zh">一张输入资产、一句编辑指令，以及输出仍须满足的约束（画幅、颜色预算、透明度）。部分题目要求输出一小段帧序列，以便按时间判断视角或姿态的变化。</p>
+        </div>
+        <div class="soon-card">
+          <h3><span class="lang-en">What will be reported</span><span class="lang-zh">将报告什么</span></h3>
+          <p class="lang-en">Whether the requested change actually happened, whether edits stayed inside the permitted
+          region, and whether the untouched parts of the asset survived. Both failure directions matter: doing nothing
+          and damaging unrelated regions are reported separately, because preservation alone would reward an agent that
+          never edits.</p>
+          <p class="lang-zh">被要求的修改是否真的发生、改动是否落在允许区域内、未涉及的部位是否被保住。两个方向的失败会分开报告：什么都不改、以及改对了却破坏了无关区域——只强调保持会奖励「不编辑」的模型。</p>
+        </div>
+        <div class="soon-card">
+          <h3><span class="lang-en">Evaluation</span><span class="lang-zh">评价方式</span></h3>
+          <p class="lang-en">Deterministic checks for the instruction's target and its locality, paired with human
+          judgement of whether the edit follows the instruction, looks natural, and leaves a usable asset. The same
+          judge protocol as the creation suite is used for scale, with its agreement to human preference reported.</p>
+          <p class="lang-zh">对指令目标与改动范围使用确定性检查，并由人类判断编辑是否遵循指令、结果是否自然、资产是否仍可用。规模化部分沿用与生成套件相同的 judge 协议，并报告其与人类偏好的一致性。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── results ───────────────────────── -->
+<section class="section" id="results">
+  <div class="wrap">
+    <h2><span class="lang-en">Results</span><span class="lang-zh">评测结果</span></h2>
+    <p class="lede lang-en">13 models × 75 tasks = <strong>975 artworks</strong>. Every artwork was scored by a
+    multimodal LLM judge (gemini-3.8-flash, 0–100) and ranked by four human raters, who ordered all 13 models
+    for each of the 75 tasks. <strong>GPT-6 Astra</strong> is first on both metrics.</p>
+    <p class="lede lang-zh">13 个模型 × 75 道题 = <strong>975 张作品</strong>。每张作品都由多模态 LLM 评审（gemini-3.8-flash，0–100 分）打分，并由 4 位人类评审对每题 13 个模型排序。<strong>GPT-6 Astra</strong> 在两项指标上均排名第一。</p>
+
+    <div class="stat-band" id="statBand"></div>
+
+    <div class="results-grid">
+      <div class="results-main">
+        <p class="fig-label"><strong><span class="lang-en">Table 1</span><span class="lang-zh">表 1</span></strong> —
+          <span class="lang-en">overall model ranking</span><span class="lang-zh">模型总体排名</span></p>
+        <h3><span class="lang-en">Overall ranking</span><span class="lang-zh">总体排名</span></h3>
+        <div class="table-scroll">
+          <table class="lb" id="lbTable">
+            <thead>
+              <tr>
+                <th class="num">#</th>
+                <th><span class="lang-en">Model</span><span class="lang-zh">模型</span></th>
+                <th class="num"><span class="lang-en">Judge mean</span><span class="lang-zh">Judge 均分</span></th>
+                <th class="num"><span class="lang-en">Human rank</span><span class="lang-zh">人类平均名次</span></th>
+                <th class="num"><span class="lang-en">n</span><span class="lang-zh">题数</span></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="footnote lang-en">Lower is better for human rank; the value is the mean 1-based rank over
+        4 raters × 75 tasks (13 models ranked per task, so a model with no preference signal sits at 7.0).</p>
+        <p class="footnote lang-zh">人类名次越低越好，数值为 4 位评审 × 75 道题的平均名次（每题对 13 个模型排序，因此「无偏好信号」的模型约为 7.0）。</p>
+      </div>
+
+      <div class="results-side">
+        <p class="fig-label"><strong><span class="lang-en">Figure 2</span><span class="lang-zh">图 2</span></strong> —
+          <span class="lang-en">judge ↔ human agreement</span><span class="lang-zh">Judge 与人类的一致性</span></p>
+        <h3><span class="lang-en">Judge ↔ human agreement</span><span class="lang-zh">Judge 与人类的一致性</span></h3>
+        <figure class="scatter-figure">
+          <div id="scatter"></div>
+          <figcaption>
+            <span class="lang-en">Mean judge score vs. mean human percentile per model. Spearman
+            <strong id="rhoJudge">—</strong> over the 975 task–model pairs.</span>
+            <span class="lang-zh">每个模型的 Judge 均分与人类百分位。975 个「题目–模型」对的 Spearman <strong id="rhoJudgeZh">—</strong>。</span>
+          </figcaption>
+        </figure>
+        <ul class="notes" id="agreementNotes"></ul>
+      </div>
+    </div>
+
+    <p class="fig-label mt"><strong><span class="lang-en">Table 2</span><span class="lang-zh">表 2</span></strong> —
+      <span class="lang-en">judge mean by task category</span><span class="lang-zh">各类别的 Judge 均分</span></p>
+    <h3><span class="lang-en">Judge mean by category</span><span class="lang-zh">按类别的 Judge 均分</span></h3>
+    <p class="sub-lede lang-en">Cells are mean judge scores (0–100); darker is better. Categories with very few
+    tasks (effects, materials) are noisier than the rest.</p>
+    <p class="sub-lede lang-zh">单元格为 Judge 均分（0–100），颜色越深代表分数越高。题目数很少的类别（特效类、材质类）噪声更大。</p>
+    <div class="table-scroll">
+      <table class="heat" id="heatTable"></table>
+    </div>
+
+    <p class="fig-label mt"><strong><span class="lang-en">Protocol</span><span class="lang-zh">评测协议</span></strong> —
+      <span class="lang-en">how these numbers were produced</span>
+      <span class="lang-zh">这些数字是如何得到的</span></p>
+    <div class="protocol-grid">
+      <article class="info-card">
+        <h3><span class="lang-en">LLM-as-judge</span><span class="lang-zh">LLM 评审</span></h3>
+        <ul class="proto-list">
+          <li class="lang-en">Judge model <code id="protoJudge">gemini-3.8-flash</code>; one image per call, a single
+            0–100 number requested, temperature 0.2.</li>
+          <li class="lang-zh">评审模型 <code id="protoJudgeZh">gemini-3.8-flash</code>；每次调用一张图，只要求输出一个 0–100 的数字，temperature 0.2。</li>
+          <li class="lang-en">Inputs are the <em>native</em> canvas, given a transparent margin
+            (<code>width/16</code> left, <code>height/16</code> top) and then nearest-neighbour upscaled to
+            512×512 — the padding removes grid alignment that depressed scores, and the upscale adds no
+            anti-aliasing.</li>
+          <li class="lang-zh">输入为<em>原始分辨率</em>画布，先加透明留白（左 <code>width/16</code>、上 <code>height/16</code>），再用最近邻放大到 512×512 —— 留白消除了压低分数的网格对齐效应，放大过程不引入抗锯齿。</li>
+          <li class="lang-en">975 cells = 75 tasks × 13 models, no failures; scores span 15–96.</li>
+          <li class="lang-zh">975 个单元格 = 75 题 × 13 模型，无失败；分数范围 15–96。</li>
+        </ul>
+      </article>
+      <article class="info-card">
+        <h3><span class="lang-en">Human evaluation</span><span class="lang-zh">人类评价</span></h3>
+        <ul class="proto-list">
+          <li class="lang-en">Four raters independently ordered all 13 models for each of the 75 tasks
+            (a full ranking per task, not a 1–5 score).</li>
+          <li class="lang-zh">4 位评审对 75 道题分别独立排序 13 个模型（每题一个完整排序，而非 1–5 打分）。</li>
+          <li class="lang-en">Mean pairwise Spearman agreement <em>between raters</em> is
+            <strong id="protoRater">0.670</strong> — the humans disagree with each other about as much as the judge
+            disagrees with the human mean.</li>
+          <li class="lang-zh">评审两两之间的平均 Spearman 一致性为 <strong id="protoRaterZh">0.670</strong> ——人类彼此的分歧与 Judge 和人类均值之间的分歧相当。</li>
+          <li class="lang-en">Reported as the mean 1-based rank over raters × tasks (7.0 = no preference signal).</li>
+          <li class="lang-zh">报告值为评审 × 题目的平均名次（1 起始，7.0 表示无偏好信号）。</li>
+        </ul>
+      </article>
+      <article class="info-card">
+        <h3><span class="lang-en">Generation setting</span><span class="lang-zh">生成设置</span></h3>
+        <ul class="proto-list">
+          <li class="lang-en">Every model draws through the same agentic REPL surface with an identical tool
+            budget, temperature and prompt, so differences come from the model, not the harness.</li>
+          <li class="lang-zh">所有模型使用同一套 Agent REPL 工具面、相同的工具预算、temperature 与提示词，差异来自模型本身而非 harness。</li>
+          <li class="lang-en">Palette size is capped by each task (<code>max_colors</code>, 86 in the suite);
+            the canvas starts fully transparent and is rendered without anti-aliasing.</li>
+          <li class="lang-zh">调色板数量由题目约束（<code>max_colors</code>，本套题为 86）；画布初始全透明，渲染全程无抗锯齿。</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── gallery ───────────────────────── -->
+<section class="section section-alt" id="gallery">
+  <div class="wrap">
+    <p class="fig-label"><strong><span class="lang-en">Figure 3</span><span class="lang-zh">图 3</span></strong> —
+      <span class="lang-en">qualitative results, complete: all 975 generated artworks (75 tasks × 13 models),
+        each annotated with its LLM-judge score</span>
+      <span class="lang-zh">完整定性结果：全部 975 张生成作品（75 道题 × 13 个模型），每张标注 LLM Judge 分数</span></p>
+    <h2><span class="lang-en">Per-task qualitative results across the full task suite</span><span class="lang-zh">全题库逐题定性结果</span></h2>
+    <p class="lede lang-en">The complete generation matrix of the reported run: rows are the 75 tasks, columns are
+    the 13 evaluated models, and each cell holds that model's final canvas for that task. Cells are annotated with
+    the corresponding judge score, and the highest-scoring artwork of every row carries an outline. Clicking a cell
+    opens the artwork at native resolution together with its task prompt.</p>
+    <p class="lede lang-zh">所报告运行的完整生成矩阵：行是 75 道题目，列是 13 个被评测模型，每格是该模型在该题上的最终画布。单元格标注对应的 Judge 分数，每行得分最高的作品带高亮边框。点击任意单元格可查看原始分辨率作品及其题目提示词。</p>
+
+    <div class="gallery-controls">
+      <div class="gc-group">
+        <label for="metricSel"><span class="lang-en">Cell metric</span><span class="lang-zh">单元格指标</span></label>
+        <select id="metricSel">
+          <option value="judge">LLM judge score (0–100)</option>
+          <option value="human">Human mean rank (1 = best)</option>
+          <option value="none">—</option>
+        </select>
+      </div>
+      <div class="gc-group">
+        <label for="catSel"><span class="lang-en">Category</span><span class="lang-zh">类别</span></label>
+        <select id="catSel"><option value="">All</option></select>
+      </div>
+      <div class="gc-group">
+        <label for="sortSel"><span class="lang-en">Sort rows</span><span class="lang-zh">行排序</span></label>
+        <select id="sortSel">
+          <option value="idx">Task order</option>
+          <option value="judgemax">Easiest (row best) first</option>
+          <option value="judgeasc">Hardest (row best) first</option>
+          <option value="spread">Rater disagreement</option>
+          <option value="size">Canvas size</option>
+        </select>
+      </div>
+      <div class="gc-group grow">
+        <label for="searchBox"><span class="lang-en">Search</span><span class="lang-zh">搜索</span></label>
+        <input id="searchBox" type="search" placeholder="magic forest cottage / 魔法 / 场景类">
+      </div>
+      <div class="gc-group toggle">
+        <label class="switch"><input type="checkbox" id="bestToggle" checked>
+          <span><span class="lang-en">Outline row best</span><span class="lang-zh">高亮每行最佳</span></span></label>
+      </div>
+      <div class="gc-group toggle">
+        <label class="switch"><input type="checkbox" id="zoomToggle">
+          <span><span class="lang-en">Large cells</span><span class="lang-zh">大图模式</span></span></label>
+      </div>
+    </div>
+
+    <p class="gal-count" id="galCount"></p>
+    <div class="gallery-scroll" id="galleryScroll">
+      <table class="gallery" id="galleryTable">
+        <thead><tr id="galHead"></tr></thead>
+        <tbody id="galBody"></tbody>
+      </table>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</section>
+
+<!-- ───────────────────────── resources ───────────────────────── -->
+<section class="section" id="resources">
+  <div class="wrap narrow">
+    <h2><span class="lang-en">Resources</span><span class="lang-zh">资源</span></h2>
+    <div class="res-grid">
+      <article class="res-card is-reserved">
+        <h3><span class="lang-en">Paper</span><span class="lang-zh">论文</span></h3>
+        <p><span class="lang-en">arXiv preprint — reserved, link to follow.</span><span class="lang-zh">arXiv 预印本 —— 预留位置，链接待补充。</span></p>
+        <span class="badge-res"><span class="lang-en">coming soon</span><span class="lang-zh">即将发布</span></span>
+      </article>
+      <article class="res-card is-reserved">
+        <h3><span class="lang-en">Code &amp; data</span><span class="lang-zh">代码与数据</span></h3>
+        <p><span class="lang-en">Harness, task suite and evaluation scripts — reserved, link to follow.</span><span class="lang-zh">Harness、题库与评测脚本 —— 预留位置，链接待补充。</span></p>
+        <span class="badge-res"><span class="lang-en">coming soon</span><span class="lang-zh">即将发布</span></span>
+      </article>
+      <article class="res-card">
+        <h3><span class="lang-en">Pixel-art skill</span><span class="lang-zh">像素画 Skill</span></h3>
+        <p><span class="lang-en">The reusable drawing skill the agent uses in this benchmark.</span><span class="lang-zh">本基准中 Agent 使用的可复用绘图 Skill。</span></p>
+        <a class="res-link" href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">github.com/Ori-Replication/astra-pixel-art-skill ↗</a>
+      </article>
+    </div>
+
+    <h3 class="mt"><span class="lang-en">Citation</span><span class="lang-zh">引用</span></h3>
+    <p class="sub-lede lang-en">Placeholder — the final BibTeX entry will be added once the paper is public.</p>
+    <p class="sub-lede lang-zh">占位 —— 论文公开后将补充正式 BibTeX。</p>
+    <pre class="bibtex">@misc{pixelbench2027,
+  title  = {PixelBench: Evaluating Language Models for Pixel-Art Creation},
+  author = {PixelBench Team},
+  year   = {2027},
+  note   = {Preprint, link to be added}
+}</pre>
+
+    <h3 class="mt"><span class="lang-en">Provenance of this page</span><span class="lang-zh">本页数据来源</span></h3>
+    <ul class="notes">
+      <li class="lang-en">Results: run <code id="runId1">run_final_all_models</code> — 975 images, judge model
+        <code id="judgeModel1">gemini-3.8-flash</code>, four human raters, aggregated by
+        <code>paper_site/tools/aggregate_scores.py</code>.</li>
+      <li class="lang-zh">结果：运行 <code id="runId2">run_final_all_models</code> —— 975 张图，Judge 模型 <code id="judgeModel2">gemini-3.8-flash</code>，4 位人类评审，由 <code>paper_site/tools/aggregate_scores.py</code> 汇总。</li>
+      <li class="lang-en">Case study: the step sources under <code>paper_site/case/src/</code>, replayed against
+        the vendored Astra engine by <code>paper_site/tools/build_case_frames.py</code>; the replayed final
+        canvas is byte-identical to the PNG the original session exported.</li>
+      <li class="lang-zh">案例：<code>paper_site/case/src/</code> 下的原始步骤源码，由 <code>paper_site/tools/build_case_frames.py</code> 在仓库内置的 Astra 引擎上重放；重放得到的最终画布与原始会话导出的 PNG 逐字节一致。</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p><span class="lang-en">PixelBench — a benchmark for pixel-art creation with language models. Page built from
+    <a href="#results">run_final_all_models</a>; artwork shown at native resolution.</span>
+    <span class="lang-zh">PixelBench —— 面向像素画创作的语言模型评测基准。本页基于 <a href="#results">run_final_all_models</a> 构建；作品以原始分辨率展示。</span></p>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lb-close" id="lbClose" type="button" aria-label="Close">✕</button>
+  <figure class="lb-figure">
+    <img id="lbImg" alt="">
+    <figcaption id="lbCap"></figcaption>
+  </figure>
+</div>
+
+<script src="data/scores.js"></script>
+<script src="case/data/session.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
