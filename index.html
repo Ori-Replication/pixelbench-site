@@ -238,44 +238,11 @@
 <!-- ───────────────────────── editing (coming soon) ───────────────────────── -->
 <section class="section" id="editing">
   <div class="wrap">
-    <p class="kicker"><strong><span class="lang-en">Task suite 2</span><span class="lang-zh">任务套件 2</span></strong> —
-      <span class="lang-en">instruction-guided editing, in preparation</span>
-      <span class="lang-zh">指令驱动的编辑，筹备中</span></p>
-    <h2><span class="lang-en">Editing an existing pixel-art asset</span><span class="lang-zh">修改已有的像素画资产</span></h2>
-    <p class="lede lang-en">The second half of PixelBench asks a different question: given a finished pixel-art asset and a
-    written instruction, can a model make exactly the requested change and leave everything else alone? The model sees
-    the asset and the instruction but never the reference result, and its whole session is traced like the creation
-    tasks. <strong>25 tasks</strong> are being prepared; results will appear here.</p>
-    <p class="lede lang-zh">PixelBench 的另一半问的是另一个问题：给一张已完成的像素画资产和一句文字指令，模型能否只做出被要求的那处修改、而不动其它部分？模型能看到资产与指令，但看不到参考结果，整个过程同样被完整记录。<strong>25 道题</strong>正在准备中，结果将在此处更新。</p>
-
+    <h2><span class="lang-en">Instruction-guided editing</span><span class="lang-zh">指令驱动的编辑</span></h2>
     <div class="soon-panel">
       <div class="soon-head">
         <span class="soon-badge"><span class="lang-en">coming soon</span><span class="lang-zh">即将发布</span></span>
-        <span class="soon-count"><b>25</b> <span class="lang-en">editing tasks</span><span class="lang-zh">道编辑题</span></span>
-      </div>
-      <div class="soon-cards">
-        <div class="soon-card">
-          <h3><span class="lang-en">What a task looks like</span><span class="lang-zh">题目形态</span></h3>
-          <p class="lang-en">An input asset, an editing instruction, and the output constraints it must still satisfy
-          (canvas size, colour budget, transparency). Some tasks ask for a short frame sequence rather than a single
-          image, so a change in viewing angle or pose can be judged over time.</p>
-          <p class="lang-zh">一张输入资产、一句编辑指令，以及输出仍须满足的约束（画幅、颜色预算、透明度）。部分题目要求输出一小段帧序列，以便按时间判断视角或姿态的变化。</p>
-        </div>
-        <div class="soon-card">
-          <h3><span class="lang-en">What will be reported</span><span class="lang-zh">将报告什么</span></h3>
-          <p class="lang-en">Whether the requested change actually happened, whether edits stayed inside the permitted
-          region, and whether the untouched parts of the asset survived. Both failure directions matter: doing nothing
-          and damaging unrelated regions are reported separately, because preservation alone would reward an agent that
-          never edits.</p>
-          <p class="lang-zh">被要求的修改是否真的发生、改动是否落在允许区域内、未涉及的部位是否被保住。两个方向的失败会分开报告：什么都不改、以及改对了却破坏了无关区域——只强调保持会奖励「不编辑」的模型。</p>
-        </div>
-        <div class="soon-card">
-          <h3><span class="lang-en">Evaluation</span><span class="lang-zh">评价方式</span></h3>
-          <p class="lang-en">Deterministic checks for the instruction's target and its locality, paired with human
-          judgement of whether the edit follows the instruction, looks natural, and leaves a usable asset. The same
-          judge protocol as the creation suite is used for scale, with its agreement to human preference reported.</p>
-          <p class="lang-zh">对指令目标与改动范围使用确定性检查，并由人类判断编辑是否遵循指令、结果是否自然、资产是否仍可用。规模化部分沿用与生成套件相同的 judge 协议，并报告其与人类偏好的一致性。</p>
-        </div>
+        <span class="soon-count"><b>25</b> <span class="lang-en">tasks</span><span class="lang-zh">道题目</span></span>
       </div>
     </div>
   </div>

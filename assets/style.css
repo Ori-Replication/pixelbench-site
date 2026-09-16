@@ -284,16 +284,13 @@ p.fig-label.mt, p.kicker.mt { margin-top: 2.6rem; }
 .out-tag { color: #7b8bff; }
 
 /* ── editing (coming soon) ─────────────────────────────────────── */
-.soon-panel { margin-top: 6px; padding: 22px; border: 1px dashed var(--line-2); border-radius: var(--radius);
+.soon-panel { margin-top: 4px; padding: 20px 22px; border: 1px dashed var(--line-2); border-radius: var(--radius);
   background: var(--surface); }
-.soon-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.soon-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .soon-badge { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 620;
   color: #7a4a06; background: #fdf1d8; border: 1px solid #efd7a3; border-radius: 999px; padding: 3px 11px; }
 .soon-count { font-size: .95rem; color: var(--ink-2); }
 .soon-count b { font-size: 1.5rem; letter-spacing: -.02em; color: var(--ink); margin-right: 2px; }
-.soon-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
-.soon-card h3 { font-size: .95rem; margin-bottom: .4em; color: var(--ink); }
-.soon-card p { font-size: .88rem; color: var(--ink-2); margin: 0; }
 .tiny-badge { font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 620;
   color: #7a4a06; background: #fdf1d8; border: 1px solid #efd7a3; border-radius: 999px; padding: 1px 7px;
   white-space: nowrap; vertical-align: 1px; }

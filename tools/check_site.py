@@ -64,7 +64,7 @@ def main() -> int:
         page.click("#langToggle")
         page.wait_for_timeout(300)
         check("hero image loaded", page.eval_on_selector(
-            ".hero-art img", "i => i.complete && i.naturalWidth > 0"))
+            ".hero-art img", "i => i.decode().then(() => i.naturalWidth > 0).catch(() => false)"))
 
         # ── case player ──────────────────────────────────────────────
         code_lines = page.eval_on_selector_all("#codeList li:not(.sep)", "n => n.length")
@@ -84,8 +84,13 @@ def main() -> int:
         # every layer thumbnail in the strip must resolve
         page.eval_on_selector("#scrub", "el => { el.value = 292; el.dispatchEvent(new Event('input')) }")
         page.wait_for_timeout(600)
-        broken = page.evaluate("""() => Array.from(document.querySelectorAll('#layerStrip img'))
-            .filter(i => !i.complete || i.naturalWidth === 0).map(i => i.src)""")
+        # await decoding: against a real network these are still in flight right after
+        # the playhead moves, which is not a failure
+        broken = page.evaluate("""async () => {
+            const imgs = Array.from(document.querySelectorAll('#layerStrip img'));
+            const ok = await Promise.all(imgs.map(i => i.decode().then(() => true).catch(() => false)));
+            return imgs.filter((_, k) => !ok[k]).map(i => i.getAttribute('src'));
+        }""")
         check("layer thumbnails at frame 292", not broken, f"{len(broken)} broken")
         state = page.evaluate("""() => ({
             frame: document.querySelector('#roFrame').textContent,
@@ -287,17 +292,22 @@ def main() -> int:
             const before = e.compareDocumentPosition(document.querySelector('#results'));
             return {badge: (e.querySelector('.soon-badge .lang-en') || e.querySelector('.soon-badge')).textContent.trim(),
                     count: e.querySelector('.soon-count b').textContent.trim(),
-                    cards: e.querySelectorAll('.soon-card').length,
+                    paras: e.querySelectorAll('p').length,
+                    enLen: e.innerText.replace(/\s+/g, ' ').trim().length,
                     beforeResults: (before & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
                     text: e.textContent};
         }""")
         check("editing section present with coming-soon badge",
               sec["badge"].lower() == "coming soon" and sec["count"] == "25", json.dumps(
                   {"badge": sec["badge"], "count": sec["count"]}))
-        check("editing section has its three cards", sec["cards"] == 3, str(sec["cards"]))
         check("editing section sits above the results", sec["beforeResults"])
         check("editing section states the task count",
               "25" in sec["text"] and "editing" in sec["text"].lower())
+        # deliberately minimal: a heading, a badge and a count, nothing that reads as a
+        # description of tasks or metrics that do not exist yet
+        check("editing section stays minimal",
+              sec["paras"] == 0 and sec["enLen"] < 90,
+              f"{sec['paras']} paragraphs, {sec['enLen']} chars")
         check("abstract suite card flags the editing suite as forthcoming",
               page.eval_on_selector_all("#abstract .tiny-badge", "n => n.length") == 1)
         page.click("#langToggle")
@@ -390,7 +400,8 @@ def main() -> int:
         page.wait_for_timeout(300)
         cap = page.inner_text("#lbCap")
         check("lightbox opens with caption", "Magic Forest Cottage" in cap, cap[:90])
-        check("lightbox image", page.eval_on_selector("#lbImg", "i => i.complete && i.naturalWidth > 0"))
+        check("lightbox image", page.eval_on_selector(
+            "#lbImg", "i => i.decode().then(() => i.naturalWidth > 0).catch(() => false)"))
         page.keyboard.press("Escape")
         page.wait_for_timeout(200)
         check("lightbox closes", page.eval_on_selector("#lightbox", "e => e.hidden"))
