@@ -536,6 +536,14 @@ function worstDivergence(cat) {
   return best;
 }
 
+/* the largest disagreement between the judge and human orderings, in rank positions */
+function maxRankGap() {
+  return MODELS.reduce((acc, m) => {
+    const gap = Math.abs(m.judge_rank - m.human_rank);
+    return gap > acc.gap ? { gap, label: m.label } : acc;
+  }, { gap: 0, label: '' });
+}
+
 /* how many adjacent pairs in the overall ranking are within `eps` judge points */
 function closePairs(eps) {
   let n = 0;
@@ -568,7 +576,7 @@ function renderScores() {
     [pick('Artworks', '作品'), meta.n_judge_cells, pick('every image judged', '每张图均被打分')],
     [pick('Human raters', '人类评审'), meta.n_raters, pick('full ranking per task', '每题完整排序')],
     [pick('Top judge mean', '最高 Judge 均分'), best.judge_mean.toFixed(1), best.label],
-    [pick('Judge ↔ human ρ', 'Judge ↔ 人类 ρ'), meta.judge_human_correlation.toFixed(3), pick('Spearman, 975 pairs', 'Spearman，975 对')],
+    [pick('Judge ↔ human τ-b', 'Judge ↔ 人类 τ-b'), meta.task_mean_tau_b.toFixed(3), pick('mean over tasks, Kendall tau-b', '逐题 Kendall tau-b 的平均')],
   ].map(([dt, dd, sub]) => `<div><dt>${esc(dt)}</dt><dd>${esc(dd)} <small>${esc(sub)}</small></dd></div>`).join('');
 
   /* leaderboard */
@@ -600,34 +608,41 @@ function renderScores() {
              judge: w.judge, human: w.human, delta: w.judge - w.human };
   }).filter(Boolean).sort((a, b) => a.delta - b.delta)[0] || null;
   const topGap = MODELS[0].judge_mean - MODELS[1].judge_mean;
+  const gap = maxRankGap();
+  const ci = meta.task_mean_tau_b_ci95;
   const notes = LANG === 'zh' ? [
-    `<strong>${meta.judge_human_correlation.toFixed(3)}</strong> 是 Judge 分数与人类百分位在 975 个「题目–模型」对上的 Spearman 相关，说明自动评审与人类偏好高度一致。`,
-    `4 位人类评审之间的平均 Spearman 为 <strong>${meta.rater_spearman.toFixed(3)}</strong>，即人类自身的分歧并不比 Judge 更小。`,
-    `<strong>13 个模型全部</strong>满足 Judge 名次与人类名次相差不超过 1 位 —— 全表最大差距仅为 1 位（GPT-5.6 Sol：Judge 第 3 / 人类第 4）。`,
-    `榜首差距很小：GPT-6 Astra 与其关闭视觉输入的版本仅差 <strong>${topGap.toFixed(2)}</strong> 分，且相邻的 ${MODELS.length - 1} 对名次中有 <strong>${closePairs(0.5)}</strong> 对差距不足 0.5 分 —— 名次的细节不宜过度解读。`,
-    div ? `题目数很少的类别上两种排序分歧明显：${div.cat}（n=${div.n}）中 ${div.label} 的 Judge 名次是第 <strong>${div.judge}</strong>，人类名次却只有第 <strong>${div.human}</strong>。这些类别上的结论需要更多题目。`
-      : `题目数很少的类别（${catWorst[0][0]} n=${catWorst[0][1].n_tasks}、${catWorst[1][0]} n=${catWorst[1][1].n_tasks}）上两种排序分歧明显，结论需要更多题目。`,
-  ] : [
-    `<strong>${meta.judge_human_correlation.toFixed(3)}</strong> is the Spearman correlation between judge scores and
-     human percentiles over all 975 task–model pairs, i.e. automated judging tracks human preference closely.`,
-    `Agreement <em>among the four human raters</em> is <strong>${meta.rater_spearman.toFixed(3)}</strong> — human
-     disagreement is not smaller than the judge's.`,
-    `All <strong>13 of 13</strong> models land within one rank position between the judge and human orderings —
-     the largest gap anywhere in the table is a single place (GPT-5.6 Sol: judge 3rd / human 4th).`,
-    `The top of the table is close: GPT-6 Astra leads its own no-vision variant by
-     <strong>${topGap.toFixed(2)}</strong> judge points, and <strong>${closePairs(0.5)} of the
-     ${MODELS.length - 1}</strong> adjacent pairs sit within 0.5 points — the fine structure of the order should not be
-     over-read.`,
-    div ? `The orderings diverge sharply in the smallest categories: in ${catLabel(div.cat)} (n=${div.n} tasks)
-     ${div.label} ranks <strong>${div.judge}${ord(div.judge)}</strong> by judge score but only
-     <strong>${div.human}${ord(div.human)}</strong> by human preference. Conclusions there need more tasks.`
-      : `The two orderings diverge in the smallest categories, e.g. ${catLabel(catWorst[0][0])}
-     (n=${catWorst[0][1].n_tasks}) and ${catLabel(catWorst[1][0])} (n=${catWorst[1][1].n_tasks}); conclusions there
-     need more tasks.`,
-  ];
+    `主指标为<strong>逐题 Kendall τ-b 的平均值 ${meta.task_mean_tau_b.toFixed(4)}</strong>（95% 区间 [${ci[0].toFixed(3)}, ${ci[1].toFixed(3)}]），即每题先算「评审分数 vs 四人平均名次」的一致性再平均，与论文冻结的协议一致。`,
+    `评审模型 <code>${meta.judge_model}</code> <strong>本身也是被评测的 13 个模型之一，并在自己的评分下排名第一</strong>。人类评审也把它排在第一，因此结论不依赖评审的自我偏好，但这仍是一条需要读者知情的限制。`,
+    `把参照换成「另外三位评审的共识」后：评审 <strong>${meta.judge_loo_mean.toFixed(4)}</strong>，留出的人类评审 <strong>${meta.human_loo_mean.toFixed(4)}</strong>，人类两两 <strong>${meta.human_pairwise_mean.toFixed(4)}</strong> —— 评审落在这个区间之内，因此不宜宣称超过人类。`,
+    `换用独立判分器 <code>${meta.pilot_judge_model}</code>（其自身并非榜首）得到的排序完全相同，这是对评审选择的一项稳健性检查；该 pilot 协议的合并 Spearman 为 ${meta.pilot_pooled_spearman}。`,
+    `13 个模型中 ${MODELS.filter((m) => Math.abs(m.judge_rank - m.human_rank) <= 1).length} 个的评审名次与人类名次相差不超过 1 位，全表最大差距为 ${gap.gap} 位（${gap.label}）。`,
+    `榜首差距 <strong>${(MODELS[0].judge_mean - MODELS[1].judge_mean).toFixed(2)}</strong> 分，相邻 ${MODELS.length - 1} 对名次中有 <strong>${closePairs(0.5)}</strong> 对差距不足 0.5 分。`,
+    div ? `题目数很少的类别上两种排序分歧明显：${div.cat}（n=${div.n}）中 ${div.label} 的 Judge 名次是第 ${div.judge}，人类名次却只有第 ${div.human}。` : '',
+  ].filter(Boolean) : [
+    `Primary metric: <strong>mean over tasks of Kendall tau-b = ${meta.task_mean_tau_b.toFixed(4)}</strong>
+     (95% CI [${ci[0].toFixed(3)}, ${ci[1].toFixed(3)}]) — each task's judge-vs-human agreement is computed
+     first and then averaged, matching the frozen protocol behind these numbers.`,
+    `The judge <code>${meta.judge_model}</code> is <strong>also one of the 13 evaluated models and places first
+     under its own scoring</strong>. Human raters place it first as well, so the conclusion does not rest on judge
+     self-preference, but readers should know about the overlap.`,
+    `Against the consensus of the other three raters the judge scores <strong>${meta.judge_loo_mean.toFixed(4)}</strong>,
+     a held-out rater scores <strong>${meta.human_loo_mean.toFixed(4)}</strong>, and raters agree with each other at
+     <strong>${meta.human_pairwise_mean.toFixed(4)}</strong> — the judge sits inside that band, so it should not be
+     claimed to beat humans.`,
+    `An independent pilot judge <code>${meta.pilot_judge_model}</code>, which is not the top-ranked model, produced the
+     same ordering — a robustness check on the choice of judge (pooled Spearman ${meta.pilot_pooled_spearman} for that
+     protocol).`,
+    `${MODELS.filter((m) => Math.abs(m.judge_rank - m.human_rank) <= 1).length} of ${MODELS.length} models land within
+     one rank position between the two orderings; the largest gap in the table is ${gap.gap} places (${gap.label}).`,
+    `The top of the table is separated by <strong>${(MODELS[0].judge_mean - MODELS[1].judge_mean).toFixed(2)}</strong>
+     judge points, and <strong>${closePairs(0.5)} of the ${MODELS.length - 1}</strong> adjacent pairs sit within 0.5.`,
+    div ? `The orderings diverge in the smallest categories: in ${catLabel(div.cat)} (n=${div.n} tasks)
+     ${div.label} ranks <strong>${div.judge}${ord(div.judge)}</strong> by judge score but
+     <strong>${div.human}${ord(div.human)}</strong> by human preference.` : '',
+  ].filter(Boolean);
   $('#agreementNotes').innerHTML = notes.map((n) => `<li>${n}</li>`).join('');
-  $('#rhoJudge').textContent = meta.judge_human_correlation.toFixed(3);
-  $('#rhoJudgeZh').textContent = meta.judge_human_correlation.toFixed(3);
+  $('#rhoJudge').textContent = meta.task_mean_tau_b.toFixed(4);
+  $('#rhoJudgeZh').textContent = meta.task_mean_tau_b.toFixed(4);
 
   renderScatter();
   renderHeat();

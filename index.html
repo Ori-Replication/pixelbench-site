@@ -30,18 +30,14 @@
 <header class="hero" id="top">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow"><span class="lang-en">Benchmark &middot; ICLR 2027 submission</span><span class="lang-zh">基准 &middot; ICLR 2027 投稿</span></p>
       <h1>PixelBench</h1>
       <p class="subtitle lang-en">Evaluating Language Models for Pixel-Art Creation</p>
       <p class="subtitle lang-zh">面向像素画创作的语言模型评测基准</p>
-      <p class="authors">PixelBench Team <span class="authors-note lang-en">· authors and affiliations to be added</span><span class="authors-note lang-zh">· 作者与单位待补充</span></p>
       <div class="cta-row">
         <a class="btn btn-primary is-soon" href="#resources" title="Coming soon">
           <span class="lang-en">Paper (soon)</span><span class="lang-zh">论文（待发布）</span></a>
         <a class="btn is-soon" href="#resources" title="Coming soon">
           <span class="lang-en">Code (soon)</span><span class="lang-zh">代码（待发布）</span></a>
-        <a class="btn btn-ghost" href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">
-          <span class="lang-en">Pixel-art skill ↗</span><span class="lang-zh">像素画 Skill ↗</span></a>
       </div>
       <dl class="hero-stats">
         <div><dt>75</dt><dd><span class="lang-en">text-to-image tasks</span><span class="lang-zh">文生图题目</span></dd></div>
@@ -51,7 +47,7 @@
       </dl>
     </div>
     <figure class="hero-art">
-      <img src="case/final@4x.png" alt="Summer seaside pixel art, 128x128, drawn by GPT-6 Astra with the astra-pixel-art skill" width="512" height="512">
+      <img src="case/final@4x.png" alt="Summer seaside pixel art, 128x128, drawn by GPT-6 Astra with a reusable pixel-art drawing skill" width="512" height="512">
       <figcaption>
         <span class="lang-en">Drawn by <strong>GPT-6 Astra</strong> through code, layer by layer — <a href="#case">see the process</a>.</span>
         <span class="lang-zh">由 <strong>GPT-6 Astra</strong> 用代码逐层绘制 — <a href="#case">查看绘制过程</a>。</span>
@@ -118,10 +114,9 @@
   <div class="wrap">
     <h2><span class="lang-en">Case study — one drawing, one line of code at a time</span><span class="lang-zh">案例 — 一行代码一个动作的完整绘制过程</span></h2>
     <p class="lede lang-en">A language model does not paint here: it <em>writes code</em>. Below is the
-    verbatim session in which GPT-6 Astra drew task&nbsp;#45 <em>Summer Seaside</em> (128×128) with the
-    <a href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">astra-pixel-art</a>
-    skill.</p>
-    <p class="lede lang-zh">模型在这里不是「画」出来的，而是<strong>写代码</strong>画出来的。以下片段是 GPT-6 Astra 使用 <a href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">astra-pixel-art</a> Skill 完成第 45 题《夏日的海边》（128×128）的完整会话。</p>
+    verbatim session in which GPT-6 Astra drew task&nbsp;#45 <em>Summer Seaside</em> (128×128) with a
+    reusable pixel-art drawing skill.</p>
+    <p class="lede lang-zh">模型在这里不是「画」出来的，而是<strong>写代码</strong>画出来的。以下片段是 GPT-6 Astra 使用一个可复用的像素画绘制 Skill 完成第 45 题《夏日的海边》（128×128）的完整会话。</p>
 
     <div class="case-meta" id="caseMeta"></div>
 
@@ -277,9 +272,9 @@
         <figure class="scatter-figure">
           <div id="scatter"></div>
           <figcaption>
-            <span class="lang-en">Mean judge score vs. mean human percentile per model. Spearman
-            <strong id="rhoJudge">—</strong> over the 975 task–model pairs.</span>
-            <span class="lang-zh">每个模型的 Judge 均分与人类百分位。975 个「题目–模型」对的 Spearman <strong id="rhoJudgeZh">—</strong>。</span>
+            <span class="lang-en">Mean judge score vs. mean human percentile per model. Agreement is
+            <strong id="rhoJudge">—</strong> (mean over tasks of Kendall tau-b, not pooled over pairs).</span>
+            <span class="lang-zh">每个模型的 Judge 均分与人类百分位。一致性为 <strong id="rhoJudgeZh">—</strong>（逐题 Kendall tau-b 的平均，而非合并计算）。</span>
           </figcaption>
         </figure>
         <ul class="notes" id="agreementNotes"></ul>
@@ -303,16 +298,21 @@
       <article class="info-card">
         <h3><span class="lang-en">LLM-as-judge</span><span class="lang-zh">LLM 评审</span></h3>
         <ul class="proto-list">
-          <li class="lang-en">Judge model <code id="protoJudge">gemini-3.8-flash</code>; one image per call, a single
-            0–100 number requested, temperature 0.2.</li>
-          <li class="lang-zh">评审模型 <code id="protoJudgeZh">gemini-3.8-flash</code>；每次调用一张图，只要求输出一个 0–100 的数字，temperature 0.2。</li>
+          <li class="lang-en">Judge model <code id="protoJudge">gpt-6-astra</code>; each call carries the task brief,
+            the canvas constraints and exactly one anonymous artwork, and asks for a single 0–100 number
+            (temperature 0.2).</li>
+          <li class="lang-zh">评审模型 <code id="protoJudgeZh">gpt-6-astra</code>；每次调用只包含题目 brief、画幅约束和一张匿名作品，要求输出一个 0–100 的数字（temperature 0.2）。</li>
           <li class="lang-en">Inputs are the <em>native</em> canvas, given a transparent margin
             (<code>width/16</code> left, <code>height/16</code> top) and then nearest-neighbour upscaled to
             512×512 — the padding removes grid alignment that depressed scores, and the upscale adds no
             anti-aliasing.</li>
           <li class="lang-zh">输入为<em>原始分辨率</em>画布，先加透明留白（左 <code>width/16</code>、上 <code>height/16</code>），再用最近邻放大到 512×512 —— 留白消除了压低分数的网格对齐效应，放大过程不引入抗锯齿。</li>
-          <li class="lang-en">975 cells = 75 tasks × 13 models, no failures; scores span 15–96.</li>
-          <li class="lang-zh">975 个单元格 = 75 题 × 13 模型，无失败；分数范围 15–96。</li>
+          <li class="lang-en">975 cells = 75 tasks × 13 models, no failures; scores span 24–93.</li>
+          <li class="lang-zh">975 个单元格 = 75 题 × 13 模型，无失败；分数范围 24–93。</li>
+          <li class="lang-en"><strong>The judge is also one of the 13 evaluated models</strong> and places first under
+            its own scoring. Human raters also place it first, and an independent pilot judge — which is not the
+            top-ranked model — reproduced the same ordering.</li>
+          <li class="lang-zh"><strong>评审模型本身也是 13 个被评测模型之一</strong>，并在自己的评分下排名第一。人类评审同样把它排在第一；另一个独立的 pilot 评审（其自身并非榜首）给出了相同的排序。</li>
         </ul>
       </article>
       <article class="info-card">
@@ -423,8 +423,8 @@
       </article>
       <article class="res-card">
         <h3><span class="lang-en">Pixel-art skill</span><span class="lang-zh">像素画 Skill</span></h3>
-        <p><span class="lang-en">The reusable drawing skill the agent uses in this benchmark.</span><span class="lang-zh">本基准中 Agent 使用的可复用绘图 Skill。</span></p>
-        <a class="res-link" href="https://github.com/Ori-Replication/astra-pixel-art-skill" target="_blank" rel="noopener">github.com/Ori-Replication/astra-pixel-art-skill ↗</a>
+        <p><span class="lang-en">The reusable drawing skill the agent uses in this benchmark; it will be released
+        together with the code.</span><span class="lang-zh">本基准中 Agent 使用的可复用绘图 Skill，将与代码一同发布。</span></p>
       </article>
     </div>
 
@@ -433,7 +433,7 @@
     <p class="sub-lede lang-zh">占位 —— 论文公开后将补充正式 BibTeX。</p>
     <pre class="bibtex">@misc{pixelbench2027,
   title  = {PixelBench: Evaluating Language Models for Pixel-Art Creation},
-  author = {PixelBench Team},
+  author = {Anonymous},
   year   = {2027},
   note   = {Preprint, link to be added}
 }</pre>
