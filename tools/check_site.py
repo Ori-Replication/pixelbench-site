@@ -74,9 +74,11 @@ def main() -> int:
         marks = page.eval_on_selector_all("#timeline .tl-mark", "n => n.length")
         check("timeline marks", marks == 8, f"{marks} (6 layers + 2 merges)")
         check("figure 2 block removed", page.eval_on_selector_all("#layerGallery, #mergeSteps", "n => n.length") == 0)
+        check("player intro label and hint removed",
+              page.eval_on_selector_all("#player .hint, #case .fig-label", "n => n.length") == 0)
         figs = page.eval_on_selector_all(".fig-label strong .lang-en", "n => n.map(x => x.textContent)")
         check("figures renumbered without gaps",
-              figs == ["Figure 1", "Table 1", "Figure 2", "Table 2", "Protocol", "Figure 3"], str(figs))
+              figs == ["Table 1", "Figure 1", "Table 2", "Protocol", "Figure 2"], str(figs))
         meta_cells = page.eval_on_selector_all("#caseMeta div", "n => n.length")
         check("case meta strip", meta_cells == 6, f"{meta_cells}")
         check("prompt shown", len(page.inner_text("#casePrompt")) > 100)

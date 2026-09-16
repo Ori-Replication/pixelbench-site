@@ -62,9 +62,6 @@ p.fig-label b { color: var(--ink); font-weight: 650; }
 p.fig-label strong, p.kicker strong { color: var(--ink); letter-spacing: .06em; text-transform: uppercase; font-size: .72rem;
   border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; margin-right: 3px; }
 p.fig-label.mt, p.kicker.mt { margin-top: 2.6rem; }
-.hint { margin: -.6rem 0 1.5rem; font-size: .84rem; color: var(--ink-2);
-  border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 9px 13px; border-radius: 0 8px 8px 0; }
-.hint code { background: #fff; }
 .c-num { display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px;
   border-radius: 50%; background: var(--ink); color: #fff; font-size: .7rem; font-weight: 620;
   margin-right: 8px; vertical-align: 1px; }
